@@ -3,7 +3,7 @@
 ## Libraries/packages 
 ### To run this program you need access to these libraries
 
-## NLTK
+### NLTK
 I chose to use nltk because it is a popular library for natural language processing operations, especially when working with English language. It is my go-to for preprocessing data because of it's wide range of relevant functionaliy. In this case, I used the WordNetLemmatizer and sent_tokenize to prepare the documents for data extraction. For English, I prefer the nltk tokenizers, but If I were to process norwegian text, UDPIPE might be a better option because it is spesifically trained on both norwegian-bokmål and norwegian-nynorsk.
 
 ### Spacy
@@ -32,6 +32,9 @@ The extract method is called to extract the desiered data.
 
 #### add_nouns, update 
 The methods add_nouns and update are not yet implemented, but accounted for. The idea is that the user can add new categories after the initial run, and get updated information about the documents. The update method can also be called after adding new property descriptions to the property txt-file. 
+
+#### Initiate PropertySimilarityMatrix
+get_matrix returns the matrix and plot_matrix plots a heatmap of the matrix
 
 ## Tests
 ### Run by calling testTechnicalChallenge.py with an argument
