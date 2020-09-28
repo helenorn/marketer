@@ -22,8 +22,10 @@ class PropertySimilarityMatrix:
         '''
         try:
             assert isinstance(properties, AllProperties)
+
         except AssertionError:
             raise ValueError("Input must be AllProperties object")
+
         else:
             self._properties = properties
             self._size = properties.get_size()
@@ -52,7 +54,7 @@ class PropertySimilarityMatrix:
     def buildMatrix(self):
         ''' Builds the similarity matrix.
         '''
-    
+        
         for p1 in self._properties:         
             p1 = p1.get_vectorized_data()
         
@@ -73,7 +75,7 @@ class PropertySimilarityMatrix:
         list: list of term frequecy vectors for property 1
         list: list of term frequecy vectors for property 2
         '''
-   
+
         items = set(c1.keys()).union(set(c2.keys()))
      
         v1 = [c1[key] for key in items]
@@ -81,11 +83,21 @@ class PropertySimilarityMatrix:
 
         return v1, v2
 
-    def get_matrix(self):
+    def get_matrix(self, heatmap=False):
         '''
         Returns:
         array: the similarity matrix
         '''
+        try:
+            assert isinstance(heatmap, bool)
+
+        except AssertionError:
+            raise ValueError("Invalid argument, argument must be bool")
+
+        else:
+            if heatmap:
+                self.plot_matrix(self._similarity_matrix)
+
         return self._similarity_matrix
 
     def plot_matrix(self, matrix):
@@ -95,5 +107,12 @@ class PropertySimilarityMatrix:
         matrix (array): similarity matrix to plot.
 
         '''
-        sns.heatmap(matrix, annot=True)
-        plt.show()
+        try:
+            assert isinstance(matrix, np.ndarray)
+
+        except AssertionError:
+            raise ValueError("Invalid argument, argument must be numpy array")
+
+        else:
+            sns.heatmap(matrix, annot=True)
+            plt.show()

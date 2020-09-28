@@ -24,9 +24,7 @@ class ExtractPropertyData:
         self._noun_categories = noun_categories
         self._properties = AllProperties()
         self._document = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'documents/' + path)
-
         self.create_properties()
-
 
    
     def create_properties(self):
@@ -62,16 +60,26 @@ class ExtractPropertyData:
         
 
         
-    def extract(self, penalty=0.5):
+    def extract(self, pos_tags, penalty=0.5):
         '''
         Extract and assigns desired data to property objects. 
         
         Parameters:
         penalty (float): the penlaty for the noun, None touple weight
 
-
         ''' 
-        
+        try:
+            assert isinstance(pos_tags, list)
+
+        except AssertionError:
+            raise ValueError("Invalid argument, list expected as argument in position 0")
+
+        try:
+            assert isinstance(penalty, float)
+            
+        except AssertionError:
+            raise ValueError("Invalid argument, float expected as argument in position 1")
+
         try:
             assert self._properties.get_size() > 0
 
@@ -81,10 +89,9 @@ class ExtractPropertyData:
         else:
             for prop in self._properties:
                 data = PropertyData()
-                data.extract(self._noun_categories, prop)
+                data.extract(pos_tags, self._noun_categories, prop)
                 prop.set_data(data)
                 prop.vectorize(penalty)
- 
 
     def get_properties(self):
         ''' Returns:

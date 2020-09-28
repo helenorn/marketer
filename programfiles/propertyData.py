@@ -37,6 +37,7 @@ class PropertyData:
 
         nums_str = ['one', 'two', 'three', 'four', 'five', 'six', 'seven'
                 'eight', 'nine']
+
         nums_int = [i+1 for i in range(9)]
         
         if num in nums_str:
@@ -76,47 +77,52 @@ class PropertyData:
             return self._vectorized_data
             
             
-    def extract(self, c, p):
+    def extract(self, pos_tags, all_categories, a_property):
         '''Finds adjectives and numbers applying to nouns if interest for each property and saves them as bigrams (noun, adj|num). 
 
             Parameters:
-            c (NounCategories): NounCategories object containing categories
-            p (AProperty): AProperty object to analyze
+            all_categories (NounCategories): NounCategories object containing categories
+            a_property (AProperty): AProperty object to analyze
 
         '''
-
         try:
-            assert isinstance(c, NounCategories)
+            assert isinstance(pos_tags, list)
 
         except AssertionError:
-            raise ValueError("NounCategory object expected.")
+            raise ValueError("Invalid argument, list expected as argument in position 0")
+
+       
+        try:
+            assert isinstance(all_categories, NounCategories)
+
+        except AssertionError:
+            raise ValueError("NounCategory object expected as argument in position 1.")
 
         try:
-            assert isinstance(p, AProperty)
+            assert isinstance(a_property, AProperty)
         
         except AssertionError:
-            raise ValueError("AProperty object expected.")
+            raise ValueError("AProperty object expected as agrument in position 2.")
 
         try:
-            assert p.get_p_description() != None
+            assert a_property.get_p_description() != None
         
         except AssertionError:
             raise ValueError("Property description missing")
         
 
         else:
-            nouns_of_interest = [noun for nounlist in c.get_categories().values() for noun in nounlist]
 
-            custom_text = p.get_p_description()
-            sentences = sent_tokenize(custom_text.lower())
+            nouns_of_interest = [noun for nounlist in all_categories.get_categories().values() for noun in nounlist]
+            document = a_property.get_p_description()
+            sentences = sent_tokenize(document.lower())
 
-            if p.get_data() is not None:
-                self.data = p.get_data().data
+            if a_property.get_data() is not None:
+                self.data = a_property.get_data().data
 
             for sent in sentences:
 
                 dep = self._nlp(sent)
-
                 last = None
                 ngram = ''
 
@@ -138,16 +144,11 @@ class PropertyData:
 
                         elif token_text_lemma in nouns_of_interest:
                             self.data.add((token_text_lemma, None))
-                    
-        
-                    if ngram in nouns_of_interest:
-                        self.data.add((ngram, None))
 
                     if last:
                         ngram = last + ' ' + token.text
             
                     last = token.text
-            
                     possible_adj_nums = set()
 
                     left = [token for token in dep[i].lefts]
@@ -157,7 +158,7 @@ class PropertyData:
 
                     for t in possible_adj_nums:
 
-                        if t.tag_ in ['JJ', 'CD']:
+                        if t.tag_ in pos_tags:
                             adj_num =  self.normalize_if_num(t.text)
 
                             if ngram in nouns_of_interest:
@@ -169,7 +170,6 @@ class PropertyData:
                             else:
                 
                                 if token.text in nouns_of_interest:
-                
                                     self.data.add((token.text, adj_num))
 
                                 elif token_text_lemma in nouns_of_interest:            

@@ -108,6 +108,7 @@ class PropertyData(unittest.TestCase):
         self._txt = 'A wonderful apartment.'
 
         self._noun_categories = programfiles.NounCategories(self._categories)
+        self._pos_tags = ['JJ', 'CD']
     
     def test_normalize_if_num(self):
         data = programfiles.PropertyData()
@@ -119,19 +120,20 @@ class PropertyData(unittest.TestCase):
         data = programfiles.PropertyData()
 
         with self.assertRaises(ValueError):
-            data.extract("A string", a_property)
+            data.extract(self._pos_tags, "A string", a_property)
 
         with self.assertRaises(ValueError):
-            data.extract(self._noun_categories, data)
+            data.extract(self._pos_tags, self._noun_categories, data)
 
-        data.extract(self._noun_categories, a_property)
+        data.extract(self._pos_tags, self._noun_categories, a_property)
+
         a_property.set_data(data)     
         self.assertEqual(a_property.get_data_content(), set([('apartment', None),('apartment','wonderful')]))
 
     def test_vectorize(self):
         a_property = programfiles.AProperty(self._txt, "Property 1")
         data = programfiles.PropertyData()
-        data.extract(self._noun_categories, a_property)
+        data.extract(self._pos_tags, self._noun_categories, a_property)
         a_property.set_data(data)
 
         with self.assertRaises(ValueError):
@@ -161,6 +163,7 @@ class TestExtractPropertyData(unittest.TestCase):
 
         self._noun_categories = programfiles.NounCategories(self._categories)
         self._pdata = programfiles.ExtractPropertyData('properties.txt', self._noun_categories)
+        self._pos_tags = ['JJ', 'CD']
 
     def test_create_properties(self):
 
@@ -173,13 +176,19 @@ class TestExtractPropertyData(unittest.TestCase):
         self.assertIsInstance(self._pdata.get_properties(), programfiles.AllProperties)
 
     def test_extract_property_data(self):
-        self._pdata.extract(penalty=0.5)
+        with self.assertRaises(ValueError):
+            self._pdata.extract("A String", penalty=0.5)
+
+        with self.assertRaises(ValueError):
+            self._pdata.extract(self._pos_tags, penalty="A String")
+
+        self._pdata.extract(self._pos_tags, penalty=0.5)
         for prop in self._pdata.get_properties():
             self.assertIsNotNone(prop.get_data())
             self.assertIsNotNone(prop.get_vectorized_data())
         
     def test_present_data(self):
-        self._pdata.extract(penalty=0.5)
+        self._pdata.extract(self._pos_tags, penalty=0.5)
 
         with self.assertRaises(ValueError):
             self._pdata.present_data(raw_data='Hello')
@@ -200,7 +209,8 @@ class TestPropertySimilarityMatrix(unittest.TestCase):
         
         self._noun_categories = programfiles.NounCategories(self._categories)
         self._pdata = programfiles.ExtractPropertyData('properties.txt', self._noun_categories)
-        self._pdata.extract(penalty=0.5)
+        self._pos_tags = ['JJ', 'CD']
+        self._pdata.extract(self._pos_tags, penalty=0.5)
  
 
     def test_build_matrix(self):
@@ -216,6 +226,13 @@ class TestPropertySimilarityMatrix(unittest.TestCase):
             programfiles.PropertySimilarityMatrix(all_properties) 
 
         matrix = programfiles.PropertySimilarityMatrix(self._pdata.get_properties())
+
+        with self.assertRaises(ValueError):
+            matrix.get_matrix(heatmap='A string')
+
+        with self.assertRaises(ValueError):
+            matrix.plot_matrix('A string')
+
         self.assertIsInstance(matrix.get_matrix(), np.ndarray)
 
 

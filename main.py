@@ -26,12 +26,11 @@ def main():
     
     noun_categories = NounCategories(categories)
     pdata = ExtractPropertyData(path, noun_categories)
-    pdata.extract(penalty=0.5)
+    pdata.extract(penalty=0.5, pos_tags=['JJ', 'CD'])
     pdata.present_data(raw_data=False)
 
     matrix = PropertySimilarityMatrix(pdata.get_properties())
-    similarity = matrix.get_matrix()
+    similarity = matrix.get_matrix(heatmap=True)
     print("\nSIMILARITY MATRIX:\n", similarity)
-    matrix.plot_matrix(similarity)
     
 main()
