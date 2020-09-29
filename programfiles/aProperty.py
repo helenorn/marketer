@@ -30,7 +30,7 @@ class AProperty:
         data (PropertyData): PropertyData to assign to this object.
 
         '''
-        
+
         self._property_data = data
     
     def get_data(self):
@@ -96,7 +96,7 @@ class AProperty:
             assert isinstance(categories, NounCategories)
 
         except AssertionError:
-            raise TypeError("Argument in position 1 must be NoynCategories-object")
+            raise TypeError("Argument in position 0 must be NounCategories-object")
         
         else:
             self._categories = categories
