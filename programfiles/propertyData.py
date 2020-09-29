@@ -22,7 +22,6 @@ class PropertyData:
         self._nlp = spacy.load('en_core_web_sm')
         self._lemmatizer = WordNetLemmatizer() 
 
-  
 
     def normalize_if_num(self, num):
         '''Given a string-representation of a number returns the numeric representation
@@ -61,7 +60,7 @@ class PropertyData:
                 assert penalty <= 1
 
             except AssertionError:
-                raise ValueError("Penalty must be a float in the range 0.0 - 1.0")
+                raise ValueError("Argument must be float in range 0.0 - 1.0")
 
             else:
 
@@ -89,39 +88,38 @@ class PropertyData:
             assert isinstance(pos_tags, list)
 
         except AssertionError:
-            raise ValueError("Invalid argument, list expected as argument in position 0")
+            raise ValueError("Argument in position 0 must be list")
 
        
         try:
             assert isinstance(all_categories, NounCategories)
 
         except AssertionError:
-            raise ValueError("NounCategory object expected as argument in position 1.")
+            raise ValueError("Argument in position 1 must be NounCategories-object")
+
 
         try:
             assert isinstance(a_property, AProperty)
         
         except AssertionError:
-            raise ValueError("AProperty object expected as agrument in position 2.")
+            raise ValueError("Argument in position 2 must be AProperty-object")
+
 
         try:
             assert a_property.get_p_description() != None
         
         except AssertionError:
-            raise ValueError("Property description missing")
+            raise ValueError("AProperty description must be string, not NoneType-object")
         
-
         else:
-
+            
             nouns_of_interest = [noun for nounlist in all_categories.get_categories().values() for noun in nounlist]
             document = a_property.get_p_description()
             sentences = sent_tokenize(document.lower())
 
-            if a_property.get_data() is not None:
-                self.data = a_property.get_data().data
-
             for sent in sentences:
-
+                
+                #---generate a dependecy parcing of the sentance---
                 dep = self._nlp(sent)
                 last = None
                 ngram = ''
@@ -131,7 +129,7 @@ class PropertyData:
                     token_text_lemma = self._lemmatizer.lemmatize(token.text) 
                     ngram_lemma = self._lemmatizer.lemmatize(ngram)
 
-                    #add the nouns of interest to self.data to have some more vectors to work with later
+                    #---add the nouns of interest to self.data to have some more vectors to work with later---
                     if ngram in nouns_of_interest:
                         self.data.add((ngram, None))
 
@@ -145,21 +143,22 @@ class PropertyData:
                         elif token_text_lemma in nouns_of_interest:
                             self.data.add((token_text_lemma, None))
 
+                    
+                    #---catch nouns of interest with whitespace---
                     if last:
                         ngram = last + ' ' + token.text
             
                     last = token.text
                     possible_adj_nums = set()
-
                     left = [token for token in dep[i].lefts]
                     right = [token for token in dep[i].rights]
-
                     possible_adj_nums = left + right
-
+                    
+                    #---add nouns of interest that occur with adjectives or numbers---
                     for t in possible_adj_nums:
 
                         if t.tag_ in pos_tags:
-                            adj_num =  self.normalize_if_num(t.text)
+                            adj_num = self.normalize_if_num(t.text)
 
                             if ngram in nouns_of_interest:
                                 self.data.add((ngram, adj_num))
@@ -168,7 +167,6 @@ class PropertyData:
                                 self.data.add((ngram_lemma, adj_num))
                                 
                             else:
-                
                                 if token.text in nouns_of_interest:
                                     self.data.add((token.text, adj_num))
 

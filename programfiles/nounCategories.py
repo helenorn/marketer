@@ -7,7 +7,14 @@ class NounCategories:
         Parameters:
         categories_dict (dict): dictionary of predefined categories and nouns of interest
         '''
-        self._categories_dict = categories_dict
+        try:
+            assert isinstance(categories_dict, dict)
+
+        except AssertionError:
+            raise ValueError("Argument must be dict")
+
+        else:
+            self._categories_dict = categories_dict
 
     def add_noun(self, category, new_nouns):
         ''' Add new nouns of interest to the NounCategories object.

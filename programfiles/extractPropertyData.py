@@ -34,7 +34,7 @@ class ExtractPropertyData:
             open(self._document, 'r', encoding='utf8')
             
         except FileNotFoundError:
-            raise
+            raise 
 
         try:
             f = open(self._document, 'r', encoding='utf8')
@@ -43,7 +43,7 @@ class ExtractPropertyData:
             assert os.path.getsize(self._document) > 0
 
         except ValueError:
-            raise ValueError("Document can not be empty.")
+            raise ValueError("Document can not be empty!")
         
         else:
             with open(self._document, 'r', encoding='utf8') as f:
@@ -72,19 +72,19 @@ class ExtractPropertyData:
             assert isinstance(pos_tags, list)
 
         except AssertionError:
-            raise ValueError("Invalid argument, list expected as argument in position 0")
+            raise ValueError("Argument in position 0 must be list")
 
         try:
             assert isinstance(penalty, float)
             
         except AssertionError:
-            raise ValueError("Invalid argument, float expected as argument in position 1")
+            raise ValueError("Argument in position 1 must be float")
 
         try:
             assert self._properties.get_size() > 0
 
         except AssertionError:
-            raise ValueError("Empty property list")
+            raise ValueError("PropertyList-object has no AProperty-objects to extract.")
 
         else:
             for prop in self._properties:
@@ -129,7 +129,7 @@ class ExtractPropertyData:
             assert isinstance(raw_data, bool)
         
         except AssertionError:
-            raise ValueError("Invalid argument, bool expected.")
+            raise ValueError("Argument in position 0 must be bool")
         
         else:
             for p in self._properties:

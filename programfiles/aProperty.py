@@ -1,4 +1,5 @@
 from .nounCategories import NounCategories
+
 class AProperty:
 
     def __init__(self, p_description, property_name):
@@ -29,6 +30,7 @@ class AProperty:
         data (PropertyData): PropertyData to assign to this object.
 
         '''
+        
         self._property_data = data
     
     def get_data(self):
@@ -71,8 +73,14 @@ class AProperty:
     def vectorize(self, penalty):
         '''Calls the PropertyData vectorize method on the propertys data.
         '''
-    
-        self._vectorized_data = self._property_data.vectorize(penalty)
+        try:
+            assert isinstance(penalty, float)
+
+        except AssertionError:
+            raise ValueError("Argument in position 0 must be float")
+        
+        else:
+            self._vectorized_data = self._property_data.vectorize(penalty)
         
     
     def set_categories(self, categories):
@@ -88,7 +96,7 @@ class AProperty:
             assert isinstance(categories, NounCategories)
 
         except AssertionError:
-            raise TypeError("Categories must be of dictionary type.")
+            raise TypeError("Argument in position 1 must be NoynCategories-object")
         
         else:
             self._categories = categories

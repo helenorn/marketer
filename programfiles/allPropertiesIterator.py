@@ -9,7 +9,7 @@ class AllPropertiesIterator:
         '''
         self._all_properties = all_properties
         self._index = 0
-    
+        
     def __next__(self):
         if self._index < self._all_properties.get_size():
             result = self._all_properties.get_properties()[self._index]

@@ -18,7 +18,7 @@ class AllProperties:
             assert isinstance(new_property, AProperty)
 
         except AssertionError:
-            raise TypeError
+            raise TypeError("Argument in position 1 must be AProperty-object")
 
         else:
             self._properties.append(new_property)
