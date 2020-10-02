@@ -14,7 +14,7 @@ def build_test_suite(test_cases: List[str]) -> unittest.TestSuite:
     return suite
 
 def extraxt_property_data_suite() -> unittest.TestSuite:
-    return build_test_suite(['NounCategories','TestAProperty', 'TestAllProperties', 'TestExtractPropertyData', 'PropertyData'])
+    return build_test_suite(['NounCategories','TestProperty', 'TestProperties', 'TestExtractPropertyData', 'PropertyData'])
 
 
 def property_similarity_matrix_suite() -> unittest.TestSuite:
