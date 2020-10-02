@@ -23,12 +23,16 @@ class PropertySimilarityMatrix:
         properties (Properties): Properties object. 
 
         """
+        if isinstance(properties, Properties):
 
-        self._size = properties.get_size()
-        self._similarity_matrix = []
-        self._properties = properties
-        self.build_matrix()
-        self._similarity_matrix = np.array(self._similarity_matrix).reshape(self._size, self._size)
+            self._size = properties.get_size()
+            self._similarity_matrix = []
+            self._properties = properties
+            self.build_matrix()
+            self._similarity_matrix = np.array(self._similarity_matrix).reshape(self._size, self._size)
+        
+        else:
+            raise TypeError
 
     def build_matrix(self):
         """ Builds the similarity matrix.
@@ -64,6 +68,9 @@ class PropertySimilarityMatrix:
 
     def get_matrix(self, heatmap: bool=False) -> np.array:
         """
+        Parameters:
+        heatmap(bool): plots the matrix if set to True
+
         Returns:
         array: the similarity matrix
         """

@@ -44,21 +44,26 @@ class ExtractPropertyData:
                 self._properties.add_property(p)
     
 
-    def extract(self, pos_tags: List[str], penalty: float=0.5):
+    def extract(self, pos_tags: List[str], penalty: float=0.5, add_extra_nouns: bool=False):
         """
         Extract and assigns desired data to property objects. 
         
         Parameters:
         pos_tags (list): list of tags to consider
         penalty (float): the penlaty for the noun, None touple weight
+        add_extra_nouns (bool): if se to true, adds nouns of interest even without adj|num co-occurence
 
         """ 
-    
-        for prop in self._properties:
-            data = PropertyData()
-            data.extract(pos_tags, self._noun_categories, prop)
-            prop.set_data(data)
-            prop.vectorize(penalty)
+        if isinstance(pos_tags, list) and all(isinstance(i, str) for i in pos_tags):
+            
+            for prop in self._properties:
+                data = PropertyData()
+                data.extract(pos_tags, self._noun_categories, prop, add_extra_nouns)
+                prop.set_data(data)
+                prop.vectorize(penalty)
+        else:
+            raise TypeError
+
 
     def get_properties(self) -> Properties:
         """ Returns:
@@ -86,26 +91,35 @@ class ExtractPropertyData:
         
   
     def present_data(self):
-        """ Presents the extracted data as either a dictionary. 
+        """ Presents the extracted data as a dictionary. 
         """
-
         for p in self._properties:
-
-            show = {}
-            
-            for c in self._noun_categories.get_categories():
-                show[c] = {k:None for k in self._noun_categories.get_categories()[c]}
-
-            data = p.get_data_content()
-
-            for bigram in data:
-                for category in show:
-                    if bigram[0] in show[category]:
-                        if show[category][bigram[0]]:
-                                if bigram[1] not in show[category][bigram[0]] and bigram[1]:
-                                    show[category][bigram[0]].append(bigram[1])
-                        elif bigram[1]:
-                            show[category][bigram[0]] = [bigram[1]]
-            
-            
+            show = self.generate_dictionary(p)
             print(f"\nProperty name: {p.get_name()}\n{show}")
+
+    
+    def generate_dictionary(self, prop):    
+        """ Generates a dictionary of the recorded nouns and adj|num. 
+
+        Parameters:
+        prop (Property): Property-object with data
+        """
+        d = {}
+        
+        for c in self._noun_categories.get_categories():
+            d[c] = {k:None for k in self._noun_categories.get_categories()[c]}
+
+        data = prop.get_data_content()
+
+        for items in data:
+            for category in d:
+
+                if items[0] in d[category]:
+                    if d[category][items[0]]:
+
+                        if items[1] not in d[category][items[0]] and items[1]:
+                            d[category][items[0]].append(items[1])
+
+                    elif items[1]:
+                        d[category][items[0]] = [items[1]]
+        return d

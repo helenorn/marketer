@@ -52,8 +52,11 @@ class PropertyData:
 
                 Parameters:
                 c (NounCategories): NounCategories object containing categories
-                p (AllProperties): AllProperties objects to analyze
+                p (Properties): Properties objects to analyze
                 penalty (float): the penlaty for the (noun, None) 
+
+                Returns: 
+                Counter: Counter object with vectorized data
 
             """
           
@@ -68,16 +71,49 @@ class PropertyData:
         
             return self._vectorized_data
             
-            
-    def extract(self, pos_tags: List[str], all_categories: NounCategories, a_property: Property):
-        """Finds adjectives and numbers applying to nouns if interest for each property and saves them as bigrams (noun, adj|num). 
+      
+    def check_and_add_noun(self, ngram: str, ngram_lemma: str, token: str, token_text_lemma: str, adj_num: Any, nouns_of_interest: List[str]):
+        """ Checks if an item is in the nouns of interest list and ads it if true.
 
-            Parameters:
-            all_categories (NounCategories): NounCategories object containing categories
-            a_property (Property): Property object to analyze
+        Parameters:
+        ngram (str): ngram to check
+        ngram_lemma (str): lemmatized version of ngram to check
+        token (str): token to check
+        token_text_lemma (str): lemmatized version of token to chek
+        adj_num (any): NoneType-object or string with item to be added to self.data on the form (item, adj_num)
+        nouns_of_interest (list): list of nouns of interest 
 
         """
 
+        def check_noun(item):
+            """Parameters:
+            item (string): noun to be checked
+            
+            Returns:
+            bool: True if a tuple was added, False if not
+            """
+            if item in nouns_of_interest:
+                self.data.add((item, adj_num))
+                return True
+            else:
+                return False
+
+        if not check_noun(ngram) or check_noun(ngram_lemma):
+            if not check_noun(token):
+                check_noun(token_text_lemma)
+        
+        
+    def extract(self, pos_tags: List[str], all_categories: NounCategories, a_property: Property, add_extra_nouns: bool=False):
+        """Finds adjectives and numbers applying to nouns if interest for each property and saves them as bigrams (noun, adj|num). 
+
+            Parameters:
+            pos_tags (list): list with all desired pos-tags
+            all_categories (NounCategories): NounCategories object containing categories
+            a_property (Property): Property object to analyze
+            add_extra_nouns (bool): if se to true, adds nouns of interest even without adj|num co-occurence
+
+        """
+    
         nouns_of_interest = [noun for nounlist in all_categories.get_categories().values() for noun in nounlist]
         document = a_property.get_p_description()
         sentences = sent_tokenize(document.lower())
@@ -94,21 +130,10 @@ class PropertyData:
                 token_text_lemma = self._lemmatizer.lemmatize(token.text) 
                 ngram_lemma = self._lemmatizer.lemmatize(ngram)
 
-                #---add the nouns of interest to self.data to have some more vectors to work with later---
-                if ngram in nouns_of_interest:
-                    self.data.add((ngram, None))
-
-                elif ngram_lemma in nouns_of_interest:
-                    self.data.add((ngram_lemma, None))
-                    
-                else:
-                    if token.text in nouns_of_interest:
-                            self.data.add((token.text, None))
-
-                    elif token_text_lemma in nouns_of_interest:
-                        self.data.add((token_text_lemma, None))
-
-                
+                #---add the nouns of interest to self.data if the input is True---
+                if add_extra_nouns:
+                    self.check_and_add_noun(ngram, ngram_lemma, token.text, token_text_lemma, None, nouns_of_interest)
+               
                 #---catch nouns of interest with whitespace---
                 if last:
                     ngram = last + ' ' + token.text
@@ -121,19 +146,7 @@ class PropertyData:
                 
                 #---add nouns of interest that occur with adjectives or numbers---
                 for t in possible_adj_nums:
-
                     if t.tag_ in pos_tags:
                         adj_num = self.normalize_if_num(t.text)
-
-                        if ngram in nouns_of_interest:
-                            self.data.add((ngram, adj_num))
-
-                        elif ngram_lemma in nouns_of_interest:
-                            self.data.add((ngram_lemma, adj_num))
-                            
-                        else:
-                            if token.text in nouns_of_interest:
-                                self.data.add((token.text, adj_num))
-
-                            elif token_text_lemma in nouns_of_interest:            
-                                self.data.add((token_text_lemma, adj_num))
+                        self.check_and_add_noun(ngram, ngram_lemma, token.text, token_text_lemma, adj_num, nouns_of_interest)
+         
