@@ -1,9 +1,10 @@
 from .nounCategories import NounCategories
+from typing import Counter
 
-class AProperty:
+class Property:
 
-    def __init__(self, p_description, property_name):
-        '''Property object that contains various information about the property.
+    def __init__(self, p_description: str, property_name: str):
+        """Property object that contains various information about the property.
         
         Variables:
         self._p_description (string): the raw text from the property description concering this particular property.
@@ -16,7 +17,7 @@ class AProperty:
         contents (string): the raw text from the property description.
         property_name (string): the name of the property.
 
-        '''
+        """
         self._p_description = p_description
         self._property_name = property_name
         self._property_data = None
@@ -24,90 +25,76 @@ class AProperty:
         self._categories = None
     
     def set_data(self, data):
-        '''Sets property data.
+        """Sets property data.
 
         Prameters:
         data (PropertyData): PropertyData to assign to this object.
 
-        '''
+        """
 
         self._property_data = data
     
     def get_data(self):
-        ''' 
+        """ 
         Returns:
         (PropertyData): the property data of this object
-        '''
+        """
         return self._property_data
 
     
     def get_vectorized_data(self):
         return self._vectorized_data
     
-    def set_vectorized_data(self, vectorized):
+    def set_vectorized_data(self, vectorized: Counter):
         self._vectorized_data = vectorized
 
     def get_data_content(self):
-        '''
+        """
         Returns:
         list: the list of term frequencies for this property
             
-        '''
+        """
         return self._property_data.data
 
 
     def get_name(self):
-        '''
+        """
         Returns:
         string: property name
-        '''
+        """
         return self._property_name
 
     def get_p_description(self):
-        '''
+        """
         Returns:
         str: property description
-        '''
+        """
         return self._p_description
 
-    def vectorize(self, penalty):
-        '''Calls the PropertyData vectorize method on the propertys data.
-        '''
-        try:
-            assert isinstance(penalty, float)
-
-        except AssertionError:
-            raise ValueError("Argument in position 0 must be float")
-        
-        else:
-            self._vectorized_data = self._property_data.vectorize(penalty)
+    def vectorize(self, penalty: float):
+        """Calls the PropertyData vectorize method on the propertys data.
+        """
+        self._vectorized_data = self._property_data.vectorize(penalty)
         
     
-    def set_categories(self, categories):
-        '''Assigns categories to this object. 
+    def set_categories(self, categories: NounCategories):
+        """Assigns categories to this object. 
 
         Parameters:
         NounCategories: NounCategories object that contains 
         a dictionary with categories as keys and lists of nouns of interest as values
 
-        '''
-
-        try:
-            assert isinstance(categories, NounCategories)
-
-        except AssertionError:
-            raise TypeError("Argument in position 0 must be NounCategories-object")
-        
-        else:
-            self._categories = categories
+        """
+  
+        self._categories = categories
     
     def get_categories(self):
-        '''
+        """
         Returns
         NounCategories: NounCategories object that contains 
         a dictionary with categories as keys and lists of nouns of interest as values
 
-        '''
+        """
         return self._categories
 
    

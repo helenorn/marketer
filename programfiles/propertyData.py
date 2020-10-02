@@ -3,19 +3,20 @@ from nltk import sent_tokenize, WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer
 from collections import Counter
 from .nounCategories import NounCategories
-from .aProperty import AProperty
+from .property import Property
+from typing import *
 import spacy
 
 class PropertyData:
     def __init__(self):
-        '''Extracts term frequency information about the description of each property.
+        """Extracts term frequency information about the description of each property.
 
             Variables: 
             self.data (list): stores all the registered noun-adj|num instances and their frequencies 
             self._vectorized_data (defaultdict): dictionary with vectorized data
             self._lemmatizer (WordNetlemmatizer()): lemmatizer for normalization
 
-        '''
+        """
 
         self.data = set()
         self._vectorized_data = None
@@ -23,8 +24,8 @@ class PropertyData:
         self._lemmatizer = WordNetLemmatizer() 
 
 
-    def normalize_if_num(self, num):
-        '''Given a string-representation of a number returns the numeric representation
+    def normalize_if_num(self, num: str) -> str:
+        """Given a string-representation of a number returns the numeric representation
 
         Parameters:
         num (str): token to convert
@@ -32,7 +33,7 @@ class PropertyData:
         Returns:
         str: numeric representation of the inputstring
         
-        '''
+        """
 
         nums_str = ['one', 'two', 'three', 'four', 'five', 'six', 'seven'
                 'eight', 'nine']
@@ -45,8 +46,8 @@ class PropertyData:
             return num
 
             
-    def vectorize(self, penalty=0.5):
-            '''Given a list of bigrams makes a vectorized version of the data in the list. Nouns that occour with adj|num are
+    def vectorize(self, penalty: float=0.5) -> Counter:
+            """Given a list of bigrams makes a vectorized version of the data in the list. Nouns that occour with adj|num are
             given the vector 1, nouns that appear alone are penalized . Also builds a dicitonary mapping nouns and adj|num to each category.
 
                 Parameters:
@@ -54,121 +55,85 @@ class PropertyData:
                 p (AllProperties): AllProperties objects to analyze
                 penalty (float): the penlaty for the (noun, None) 
 
-            '''
-            try:
-                assert isinstance(penalty, float)
-                assert penalty <= 1
-
-            except AssertionError:
-                raise ValueError("Argument must be float in range 0.0 - 1.0")
-
-            else:
-
-                self._vectorized_data = Counter()
-                
-                for bigram in self.data: 
-
-                    if bigram[1]:
-                        self._vectorized_data[bigram] = 1
-                    else:
-                        self._vectorized_data[bigram] = 1-penalty
+            """
+          
+            self._vectorized_data = Counter()
             
+            for bigram in self.data: 
+
+                if bigram[1]:
+                    self._vectorized_data[bigram] = 1
+                else:
+                    self._vectorized_data[bigram] = 1-penalty
+        
             return self._vectorized_data
             
             
-    def extract(self, pos_tags, all_categories, a_property):
-        '''Finds adjectives and numbers applying to nouns if interest for each property and saves them as bigrams (noun, adj|num). 
+    def extract(self, pos_tags: List[str], all_categories: NounCategories, a_property: Property):
+        """Finds adjectives and numbers applying to nouns if interest for each property and saves them as bigrams (noun, adj|num). 
 
             Parameters:
             all_categories (NounCategories): NounCategories object containing categories
-            a_property (AProperty): AProperty object to analyze
+            a_property (Property): Property object to analyze
 
-        '''
-        try:
-            assert isinstance(pos_tags, list)
+        """
 
-        except AssertionError:
-            raise ValueError("Argument in position 0 must be list")
+        nouns_of_interest = [noun for nounlist in all_categories.get_categories().values() for noun in nounlist]
+        document = a_property.get_p_description()
+        sentences = sent_tokenize(document.lower())
 
-       
-        try:
-            assert isinstance(all_categories, NounCategories)
-
-        except AssertionError:
-            raise ValueError("Argument in position 1 must be NounCategories-object")
-
-
-        try:
-            assert isinstance(a_property, AProperty)
-        
-        except AssertionError:
-            raise ValueError("Argument in position 2 must be AProperty-object")
-
-
-        try:
-            assert a_property.get_p_description() != None
-        
-        except AssertionError:
-            raise ValueError("AProperty description must be string, not NoneType-object")
-        
-        else:
+        for sent in sentences:
             
-            nouns_of_interest = [noun for nounlist in all_categories.get_categories().values() for noun in nounlist]
-            document = a_property.get_p_description()
-            sentences = sent_tokenize(document.lower())
+            #---generate a dependecy parcing of the sentance---
+            dep = self._nlp(sent)
+            last = None
+            ngram = ''
 
-            for sent in sentences:
+            for i, token in enumerate(dep):
+
+                token_text_lemma = self._lemmatizer.lemmatize(token.text) 
+                ngram_lemma = self._lemmatizer.lemmatize(ngram)
+
+                #---add the nouns of interest to self.data to have some more vectors to work with later---
+                if ngram in nouns_of_interest:
+                    self.data.add((ngram, None))
+
+                elif ngram_lemma in nouns_of_interest:
+                    self.data.add((ngram_lemma, None))
+                    
+                else:
+                    if token.text in nouns_of_interest:
+                            self.data.add((token.text, None))
+
+                    elif token_text_lemma in nouns_of_interest:
+                        self.data.add((token_text_lemma, None))
+
                 
-                #---generate a dependecy parcing of the sentance---
-                dep = self._nlp(sent)
-                last = None
-                ngram = ''
+                #---catch nouns of interest with whitespace---
+                if last:
+                    ngram = last + ' ' + token.text
+        
+                last = token.text
+                possible_adj_nums = set()
+                left = [token for token in dep[i].lefts]
+                right = [token for token in dep[i].rights]
+                possible_adj_nums = left + right
+                
+                #---add nouns of interest that occur with adjectives or numbers---
+                for t in possible_adj_nums:
 
-                for i, token in enumerate(dep):
+                    if t.tag_ in pos_tags:
+                        adj_num = self.normalize_if_num(t.text)
 
-                    token_text_lemma = self._lemmatizer.lemmatize(token.text) 
-                    ngram_lemma = self._lemmatizer.lemmatize(ngram)
+                        if ngram in nouns_of_interest:
+                            self.data.add((ngram, adj_num))
 
-                    #---add the nouns of interest to self.data to have some more vectors to work with later---
-                    if ngram in nouns_of_interest:
-                        self.data.add((ngram, None))
+                        elif ngram_lemma in nouns_of_interest:
+                            self.data.add((ngram_lemma, adj_num))
+                            
+                        else:
+                            if token.text in nouns_of_interest:
+                                self.data.add((token.text, adj_num))
 
-                    elif ngram_lemma in nouns_of_interest:
-                        self.data.add((ngram_lemma, None))
-                        
-                    else:
-                        if token.text in nouns_of_interest:
-                                self.data.add((token.text, None))
-
-                        elif token_text_lemma in nouns_of_interest:
-                            self.data.add((token_text_lemma, None))
-
-                    
-                    #---catch nouns of interest with whitespace---
-                    if last:
-                        ngram = last + ' ' + token.text
-            
-                    last = token.text
-                    possible_adj_nums = set()
-                    left = [token for token in dep[i].lefts]
-                    right = [token for token in dep[i].rights]
-                    possible_adj_nums = left + right
-                    
-                    #---add nouns of interest that occur with adjectives or numbers---
-                    for t in possible_adj_nums:
-
-                        if t.tag_ in pos_tags:
-                            adj_num = self.normalize_if_num(t.text)
-
-                            if ngram in nouns_of_interest:
-                                self.data.add((ngram, adj_num))
-
-                            elif ngram_lemma in nouns_of_interest:
-                                self.data.add((ngram_lemma, adj_num))
-                                
-                            else:
-                                if token.text in nouns_of_interest:
-                                    self.data.add((token.text, adj_num))
-
-                                elif token_text_lemma in nouns_of_interest:            
-                                    self.data.add((token_text_lemma, adj_num))
+                            elif token_text_lemma in nouns_of_interest:            
+                                self.data.add((token_text_lemma, adj_num))
