@@ -12,7 +12,7 @@ class PropertiesIterator:
         
     def __next__(self):
         if self._index < self._properties.get_size():
-            result = self._properties.get_properties()[self._index]
+            result = self._properties.properties[self._index]
             self._index += 1
 
             return result

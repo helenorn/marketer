@@ -15,7 +15,7 @@ class ExtractPropertyData:
             Variables: 
             self._document (string): the document containing property descriptions
             self._noun_categories (NounCategories): NounCategories object 
-            self._properties (Properties): Properties object containing all the properties. Initially an empty Properties object.
+            self.properties (Properties): Properties object containing all the properties. Initially an empty Properties object.
 
             Parameters:
             path (string): the path to the document containing property descriptions
@@ -23,10 +23,10 @@ class ExtractPropertyData:
         """
 
         self._noun_categories = noun_categories
-        self._properties = Properties()
+        self.properties = Properties()
         self._document = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'documents/' + path)
         self.create_properties()
-
+    
     def create_properties(self):
         """ Generates Property objects based on the input document. 
         """
@@ -41,7 +41,7 @@ class ExtractPropertyData:
             for i, name in enumerate(property_names):
                 p = Property(property_text[i], name[:-1])
                 p.set_categories(self._noun_categories)
-                self._properties.add_property(p)
+                self.properties.add_property(p)
     
 
     def extract(self, pos_tags: List[str], penalty: float=0.5, add_extra_nouns: bool=False):
@@ -56,7 +56,7 @@ class ExtractPropertyData:
         """ 
         if isinstance(pos_tags, list) and all(isinstance(i, str) for i in pos_tags):
             
-            for prop in self._properties:
+            for prop in self.properties:
                 data = PropertyData()
                 data.extract(pos_tags, self._noun_categories, prop, add_extra_nouns)
                 prop.set_data(data)
@@ -64,12 +64,6 @@ class ExtractPropertyData:
         else:
             raise TypeError
 
-
-    def get_properties(self) -> Properties:
-        """ Returns:
-            Properties: the object containing all the properties.
-        """
-        return self._properties
    
 
     def update(self):
@@ -93,7 +87,7 @@ class ExtractPropertyData:
     def present_data(self):
         """ Presents the extracted data as a dictionary. 
         """
-        for p in self._properties:
+        for p in self.properties:
             show = self.generate_dictionary(p)
             print(f"\nProperty name: {p.get_name()}\n{show}")
 

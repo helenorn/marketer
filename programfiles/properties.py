@@ -6,7 +6,7 @@ class Properties:
     def __init__(self):
         """A container for alle the Property objects. 
         """
-        self._properties = []
+        self.properties = []
     
     def add_property(self, new_property: Property):
         """Adds new properties.
@@ -15,21 +15,15 @@ class Properties:
         new_property(Property): the Property object to be added. 
         """
   
-        self._properties.append(new_property)
+        self.properties.append(new_property)
     
     def get_size(self) -> int:
         """ 
         Returns: 
         int: the lengths of the list of properties.
         """
-        return len(self._properties)
+        return len(self.properties)
 
-    def get_properties(self) -> List[Property]:
-        """
-        Returns:
-        list: the list of properties.
-        """
-        return self._properties
 
     def __iter__(self):
         return PropertiesIterator(self)

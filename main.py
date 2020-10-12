@@ -29,7 +29,7 @@ def main():
     pdata.extract(penalty=0.5, pos_tags=['JJ', 'CD'], add_extra_nouns=True)
     pdata.present_data()
 
-    matrix = PropertySimilarityMatrix(pdata.get_properties())
+    matrix = PropertySimilarityMatrix(pdata.properties)
     similarity = matrix.get_matrix(heatmap=True)
     print(f"\nSIMILARITY MATRIX:\n{similarity}")
     

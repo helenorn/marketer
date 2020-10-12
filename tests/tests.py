@@ -5,7 +5,7 @@ import numpy as np
 
 class NounCategories(unittest.TestCase):
     def setUp(self):
-
+        
         self._categories = {
             'bathroom': ['bathroom', 'bath'],
             'bedroom': ['bedroom'],
@@ -76,11 +76,11 @@ class TestProperties(unittest.TestCase):
     
     def test_get_properties(self):
         all_properties = programfiles.Properties()
-        self.assertEqual(all_properties.get_properties(), [])
+        self.assertEqual(all_properties.properties, [])
 
         a_property = programfiles.Property("What a nice property", "Property 1")  
         all_properties.add_property(a_property)
-        self.assertEqual(all_properties.get_properties()[0], a_property)
+        self.assertEqual(all_properties.properties[0], a_property)
 
 
 class PropertyData(unittest.TestCase):
@@ -150,18 +150,18 @@ class TestExtractPropertyData(unittest.TestCase):
         self._pos_tags = ['JJ', 'CD']
     
     def test_create_properties(self):   
-        self.assertEqual(self._pdata.get_properties().get_size(), 5)
+        self.assertEqual(self._pdata.properties.get_size(), 5)
         with self.assertRaises(FileNotFoundError):
             programfiles.ExtractPropertyData('properties.tx', self._noun_categories)
 
     def test_get_properties(self):
-        self.assertIsInstance(self._pdata.get_properties(), programfiles.Properties)
+        self.assertIsInstance(self._pdata.properties, programfiles.Properties)
 
     def test_extract_property_data(self):
         self._pdata.extract(self._pos_tags, penalty=0.5)
         self._pdata.extract(self._pos_tags, penalty=0.5, add_extra_nouns=True)
 
-        for prop in self._pdata.get_properties():
+        for prop in self._pdata.properties:
             self.assertIsNotNone(prop.get_data())
             self.assertIsNotNone(prop.get_vectorized_data())
         
@@ -193,7 +193,7 @@ class TestPropertySimilarityMatrix(unittest.TestCase):
  
 
     def test_build_matrix(self):
-        matrix = programfiles.PropertySimilarityMatrix(self._pdata.get_properties())
+        matrix = programfiles.PropertySimilarityMatrix(self._pdata.properties)
         self.assertIsInstance(matrix.get_matrix(), np.ndarray)
 
         with self.assertRaises(TypeError):
